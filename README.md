@@ -241,7 +241,7 @@ This project is deployed on Amazon EC2.
 
 **Vishnu M B**
 
-Final Year Computer Science Engineering Student
+Graduated Computer Science Engineering Student
 
 C Byre Gowda Institute of Technology, Kolar
 
