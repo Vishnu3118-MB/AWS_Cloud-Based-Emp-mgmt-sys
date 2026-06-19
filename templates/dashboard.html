@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Dashboard</title>
+
+<link rel="stylesheet"
+      href="{{ url_for('static',filename='css/style.css') }}">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h2>EMS</h2>
+
+<ul>
+    <li><a href="/dashboard">🏠 Dashboard</a></li>
+    <li><a href="/add-employee">➕ Add Employee</a></li>
+    <li><a href="/employees">👨‍💼 Employees</a></li>
+</ul>
+
+</div>
+
+<div class="main-content">
+
+<!-- Welcome Banner -->
+
+<div class="welcome-banner">
+
+    <h2>Welcome Back, Admin 👋</h2>
+
+    <p>
+        Employee Management System Dashboard
+    </p>
+
+</div>
+
+<!-- Top Bar -->
+
+<div class="topbar">
+
+    <input
+        type="text"
+        placeholder="Search Employees..."
+        class="search-box">
+
+    <div class="profile">
+        Admin
+    </div>
+
+</div>
+
+<!-- Dashboard Title -->
+
+<h1 class="page-title">Dashboard</h1>
+
+<!-- Statistics Cards -->
+
+<div class="cards">
+
+    <div class="card">
+        <h3>Total Employees</h3>
+        <h1>{{ total_emp }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>Departments</h3>
+        <h1>{{ total_dept }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>Total Payroll</h3>
+        <h1>₹{{ total_payroll }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>Average Salary</h3>
+        <h1>₹{{ avg_salary }}</h1>
+    </div>
+
+</div>
+
+<br><br>
+
+<div class="cards">
+
+    <div class="card">
+        <h3>🏆 Highest Salary</h3>
+        <p>{{ highest_salary[0] }}</p>
+        <h1>₹{{ highest_salary[1] }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>📉 Lowest Salary</h3>
+        <p>{{ lowest_salary[0] }}</p>
+        <h1>₹{{ lowest_salary[1] }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>💼 Payroll Status</h3>
+        <p>Current Month</p>
+        <h1>Active</h1>
+    </div>
+
+    <div class="card">
+        <h3>📈 Growth</h3>
+        <p>Employee Strength</p>
+        <h1>+{{ total_emp }}</h1>
+    </div>
+
+</div>
+
+<!-- Recent Employees -->
+
+<h2 style="margin-bottom:20px;">
+    Recent Employee Activity
+</h2>
+
+<table>
+
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Department</th>
+        <th>Designation</th>
+        <th>Salary</th>
+    </tr>
+
+    {% for emp in employees %}
+
+    <tr>
+        <td>{{ emp[0] }}</td>
+        <td>{{ emp[1] }}</td>
+        <td>{{ emp[2] }}</td>
+        <td>{{ emp[3] }}</td>
+        <td>{{ emp[4] }}</td>
+        <td>₹{{ emp[5] }}</td>
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+<br><br>
+
+<!-- Department Pie Chart -->
+
+<div class="card" style="padding:40px; max-width:900px; margin:auto;">
+
+    <h2 style="margin-bottom:20px;">
+        Employees By Department
+    </h2>
+
+    <canvas id="deptChart"></canvas>
+
+</div>
+
+<br><br>
+
+<div class="card">
+
+    <h2 style="margin-bottom:20px;">
+        🏆 Top 5 Highest Paid Employees
+    </h2>
+
+    <table>
+
+        <tr>
+            <th>Rank</th>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Salary</th>
+        </tr>
+
+        {% for emp in top_paid_employees %}
+
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ emp[0] }}</td>
+            <td>{{ emp[1] }}</td>
+            <td>₹{{ emp[2] }}</td>
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+</div>
+
+<br><br>
+
+<div class="card" style="padding:40px;">
+
+    <h2 style="margin-bottom:20px;">
+        💰 Salary Analytics By Department
+    </h2>
+
+    <div style="height:600;">
+        <canvas id="salaryChart"></canvas>
+    </div>
+
+</div>
+
+<br><br>
+
+<script>
+
+const ctx = document.getElementById('deptChart');
+
+new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: {{ dept_labels | tojson }},
+        datasets: [{
+            data: {{ dept_counts | tojson }},
+
+            backgroundColor: [
+                '#3B82F6',
+                '#10B981',
+                '#F59E0B',
+                '#EF4444',
+                '#8B5CF6',
+                '#EC4899'
+            ],
+
+            borderColor: '#ffffff',
+            borderWidth: 3,
+            hoverOffset: 20
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+
+        plugins: {
+
+            legend: {
+                position: 'right',
+                labels: {
+                    padding: 20,
+                    font: {
+                        size: 14
+                    }
+                }
+            },
+
+            title: {
+                display: true,
+                text: 'Department Distribution'
+            }
+
+        }
+    }
+});
+
+
+
+/* SALARY BAR CHART */
+
+const salaryCtx =
+document.getElementById('salaryChart');
+
+new Chart(salaryCtx, {
+
+    type: 'bar',
+
+    data: {
+
+        labels:
+        {{ salary_labels | tojson }},
+
+        datasets: [{
+
+            label: 'Total Salary',
+
+            data:
+            {{ salary_totals | tojson }},
+
+            backgroundColor: [
+                '#3B82F6',
+                '#10B981',
+                '#F59E0B',
+                '#EF4444',
+                '#8B5CF6'
+            ],
+
+            borderRadius: 10
+
+        }]
+
+    },
+
+    options: {
+
+        responsive: true,
+
+        plugins: {
+
+            legend: {
+                display: false
+            }
+
+        },
+
+        scales: {
+
+            y: {
+                beginAtZero: true
+            }
+
+        }
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>
